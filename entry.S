@@ -653,11 +653,11 @@ ENTRY(sys_call_table)
 	.rept NR_syscalls-(.-sys_call_table)/4
 		.long SYMBOL_NAME(sys_ni_syscall)
 		
-	/* Zombies */
-	.long SYMBOL_NAME(sys_zombies_get)  			/* 244 */
-	.long SYMBOL_NAME(sys_zombies_set)  			/* 245 */
-	.long SYMBOL_NAME(sys_zombies_get_count)    	/* 246 */
-	.long SYMBOL_NAME(sys_zombies_get_pid)      	/* 247 */
+	/* Zombies * /
+	.long SYMBOL_NAME(sys_zombies_get)  			/* 244 * /
+	.long SYMBOL_NAME(sys_zombies_set)  			/* 245 * /
+	.long SYMBOL_NAME(sys_zombies_get_count)    	/* 246 * /
+	.long SYMBOL_NAME(sys_zombies_get_pid)      	/* 247 * /
 	.long SYMBOL_NAME(sys_zombies_give_up_zombie)   /* 248 */	
 	
 	.endr

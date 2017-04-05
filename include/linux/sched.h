@@ -4,7 +4,7 @@
 #include <asm/param.h>	/* for HZ */
 
 extern unsigned long event;
-
+#include <linux/list.h> /* Added by Dor */
 #include <linux/config.h>
 #include <linux/binfmts.h>
 #include <linux/threads.h>
@@ -317,8 +317,39 @@ extern struct user_struct root_user;
 #define INIT_USER (&root_user)
 
 typedef struct prio_array prio_array_t;
+/*********************************************************************************************************Added by Dor*/
+struct list_of_zombies {
+	pid_t pid;
+	struct list_head list;
+};
+
+struct list_of_zombies zombies_list_head;
+
+int add_zombie_to_list(struct zombies_list_head* father ,pid_t new_pid) {
+	struct zombies_list_head *ptr = (struct zombies_list_head *)kmalloc(sizeof(struct zombies_list_head));
+	if (ptr == NULL)
+		return -1;
+	
+	ptr->pid = new_pid;
+	
+	INIT_LIST_HEAD(&ptr->list);
+	
+	list_add(&ptr->list, *father);
+	
+	return 0;
+}
+
+/*********************************************************************************************************************/
 
 struct task_struct {
+	
+	/*
+	 * List added by Dor !
+	*/
+	struct zombies_list_head * head;
+	int zombies_limit;
+	int zombies_count;
+	
 	/*
 	 * offsets of these are hardcoded elsewhere - touch with care
 	 */
@@ -514,8 +545,12 @@ extern struct exec_domain	default_exec_domain;
  *  INIT_TASK is used to set up the first task table, touch at
  * your own risk!. Base=0, limit=0x1fffff (=2MB)
  */
+ /*4 first lines added by Dor */
 #define INIT_TASK(tsk)	\
 {									\
+	zomibes_limit -1,				\
+	zombies_count -1,				\
+	INIT_LIST_HEAD(&(current->head.list)); \
     state:		0,						\
     flags:		0,						\
     sigpending:		0,						\
@@ -841,7 +876,6 @@ extern task_t *child_reaper;
 
 extern int do_execve(char *, char **, char **, struct pt_regs *);
 extern int do_fork(unsigned long, unsigned long, struct pt_regs *, unsigned long);
-
 // Zombies
 extern int set_max_zombies(int max_z, pid_t pid);
 extern int get_max_zombies();
@@ -849,7 +883,6 @@ extern int get_max_zombies_count(pid_t pid);
 extern int get_zombie_pid(int n);
 extern int give_up_zombie(int n, pid_t adopter_pid);
 // End of Zombies
-
 extern void FASTCALL(add_wait_queue(wait_queue_head_t *q, wait_queue_t * wait));
 extern void FASTCALL(add_wait_queue_exclusive(wait_queue_head_t *q, wait_queue_t * wait));
 extern void FASTCALL(remove_wait_queue(wait_queue_head_t *q, wait_queue_t * wait));
